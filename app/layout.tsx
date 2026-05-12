@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Link from "next/link";
+import Sidebar from "@/component/sidebr/sidebr";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-});
-
+})
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -27,7 +28,18 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      {/* هاد الـ flex هو اللي كيخليهم يجيو واحد حدا واحد */}
+      <body className="h-full flex overflow-hidden">
+        
+        {/* الـ Sidebar غيشد بلاصتو في اليسار */}
+        <Sidebar />
+
+        {/* الـ main غيشد كاع المساحة اللي بقات وغيكون فيه السكرول بوحدو */}
+        <main className="flex-1 h-full overflow-y-auto bg-white">
+          {children}
+        </main>
+
+      </body>
     </html>
   );
 }

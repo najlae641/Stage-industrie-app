@@ -1,48 +1,96 @@
-import { table } from "console";
-import Image from "next/image";
+"use client";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
-export default function Home() {
+// Données fictives pour les graphiques
+const dataBar = [
+  { name: 'Jan', commandes: 45, livraisons: 38 },
+  { name: 'Fév', commandes: 52, livraisons: 48 },
+  { name: 'Mar', commandes: 48, livraisons: 45 },
+  { name: 'Avr', commandes: 61, livraisons: 55 },
+];
+
+const dataPie = [
+  { name: 'Livré', value: 392 },
+  { name: 'En cours', value: 64 },
+];
+
+const COLORS = ['#10b981', '#f59e0b'];
+
+export default function Dashboard() {
   return (
-    <div className="flex min-h-screen bg-gray-100">
- 
-  <aside className="w-64 bg-slate-900 text-white p-6">
-    <h2 className="text-xl font-bold mb-10">ETASCOM AUTOMOTIVE </h2>
-    <nav className="space-y-4">
-      <div className="text-blue-400">Tableau de bord</div>
-      <div className="hover:text-blue-300 cursor-pointer">Produits</div>
-    </nav>
-  </aside>
+    <div className="p-8 bg-gray-50 min-h-screen">
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">Tableau de bord Statistique</h1>
+        <p className="text-gray-500 text-sm">Analyse globale de l'inventaire et des flux</p>
+      </header>
 
-  
-  <main className="flex-1 p-8">
-    <h1 className="text-2xl font-bold mb-6">Gestion des Stocks</h1>
+      {/* 1. Les Cartes de Statistiques (Total Produit, Commande, Livraison) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border-b-4 border-blue-600">
+          <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Total Produits</p>
+          <div className="flex items-end justify-between mt-2">
+            <p className="text-4xl font-black text-gray-800">1,284</p>
+            <span className="text-blue-600 bg-blue-50 px-2 py-1 rounded text-xs">Articles</span>
+          </div>
+        </div>
 
-    
-    <div className="bg-white shadow rounded-lg overflow-hidden">
-      <table className="w-full text-left">
-        <thead className="bg-gray-50 border-b">
-          <tr>
-            <th className="p-4">Produit</th>
-            <th className="p-4">Quantité</th>
-            <th className="p-4">Statut</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr className="border-b">
-            <td className="p-4 font-medium">Moteur V6</td>
-            <td className="p-4">24</td>
-            <td className="p-4 text-green-600 font-bold">En Stock</td>
-          </tr>
-          <tr>
-            <td className="p-4 font-medium">Filtre X1</td>
-            <td className="p-4">08</td>
-            <td className="p-4 text-red-500 font-bold">Stock Faible</td>
-          </tr>
-        </tbody>
-      </table>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border-b-4 border-orange-500">
+          <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Total Commandes</p>
+          <div className="flex items-end justify-between mt-2">
+            <p className="text-4xl font-black text-gray-800">456</p>
+            <span className="text-orange-500 bg-orange-50 px-2 py-1 rounded text-xs font-medium">Reçues</span>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm border-b-4 border-green-500">
+          <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Total Livraisons</p>
+          <div className="flex items-end justify-between mt-2">
+            <p className="text-4xl font-black text-gray-800">392</p>
+            <span className="text-green-500 bg-green-50 px-2 py-1 rounded text-xs font-medium">Terminées</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Section Graphiques */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Graphique à barres : Commandes vs Livraisons */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h3 className="text-lg font-bold mb-6 text-gray-800">Performance des Livraisons</h3>
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dataBar}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="commandes" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Commandes" />
+                <Bar dataKey="livraisons" fill="#10b981" radius={[4, 4, 0, 0]} name="Livraisons" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Graphique Circulaire : Statut des commandes */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h3 className="text-lg font-bold mb-6 text-gray-800">Répartition des Commandes</h3>
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={dataPie} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                  {dataPie.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex justify-center gap-6 mt-4 text-sm font-medium">
+              <span className="text-green-600">● Livré</span>
+              <span className="text-orange-500">● En cours</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  </main>
-</div>
-       
   );
 }
