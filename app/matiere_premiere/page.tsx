@@ -5,21 +5,21 @@ import { useState } from 'react';
 export default function MatierePremierePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // بيانات تجريبية للمواد الأولية
+  
   const [matieres, setMatieres] = useState([
     { ref: "MP-001", nom: "Acier Galvanisé", qte: 500, prix: 45, lot: "LOT-MP-2026-001", fournisseur: "ArcelorMittal" },
     { ref: "MP-002", nom: "Plastique ABS", qte: 1200, prix: 12, lot: "LOT-MP-2026-002", fournisseur: "Maghreb Plast" },
     { ref: "MP-003", nom: "Câblage Cuivre", qte: 300, prix: 85, lot: "LOT-MP-2026-003", fournisseur: "Nexans" }
   ]);
 
-  const [newMat, setNewMat] = useState({ ref: '', nom: '', qte: '', prix: '', fournisseur: '' });
+  const [newMat, setNewMat] = useState({ ref: '', nom: '', qte: 0, prix: 0, fournisseur: '' });
 
-  // دالة الحفظ مع التحقق (Validation)
+  
   const handleSave = () => {
     const { ref, nom, qte, prix, fournisseur } = newMat;
     
     if (!ref || !nom || !qte || !prix || !fournisseur) {
-      alert("المرجو ملء جميع المعلومات الخاصة بالمادة الأولية والمورد!");
+      alert("Veuillez remplir tout les champs");
       return;
     }
 
@@ -28,7 +28,7 @@ export default function MatierePremierePage() {
     
     setMatieres([...matieres, newItem]);
     setIsModalOpen(false);
-    setNewMat({ ref: '', nom: '', qte: '', prix: '', fournisseur: '' });
+    setNewMat({ ref: '', nom: '', qte: 0, prix: 0, fournisseur: '' });
   };
 
   const handleDelete = (indexToDelete: number) => {
@@ -122,8 +122,8 @@ export default function MatierePremierePage() {
               <input type="text" placeholder="Désignation" className="w-full border p-3 rounded-xl outline-blue-500" onChange={(e) => setNewMat({...newMat, nom: e.target.value})} />
               <input type="text" placeholder="Nom du Fournisseur" className="w-full border p-3 rounded-xl outline-blue-500" onChange={(e) => setNewMat({...newMat, fournisseur: e.target.value})} />
               <div className="grid grid-cols-2 gap-4">
-                <input type="number" placeholder="Quantité" className="w-full border p-3 rounded-xl outline-blue-500" onChange={(e) => setNewMat({...newMat, qte: e.target.value})} />
-                <input type="number" placeholder="Prix Unitaire" className="w-full border p-3 rounded-xl outline-blue-500" onChange={(e) => setNewMat({...newMat, prix: e.target.value})} />
+                <input type="number" placeholder="Quantité" className="w-full border p-3 rounded-xl outline-blue-500" onChange={(e) => setNewMat({...newMat, qte:Number(e.target.value) })} />
+                <input type="number" placeholder="Prix Unitaire" className="w-full border p-3 rounded-xl outline-blue-500" onChange={(e) => setNewMat({...newMat, prix: Number(e.target.value)})} />
               </div>
             </div>
             <div className="flex justify-end gap-4 mt-8">

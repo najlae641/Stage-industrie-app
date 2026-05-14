@@ -1,10 +1,19 @@
 "use client";
 import { useState } from 'react'; 
+interface Produit{
+  ref:string;
+  nom:string;
+  qte:number;
+  prix:number;
+  lot:string;
+  client:string;
+  statut:string;
+}
 
 export default function ListeProduitsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // 1. هاد الحالة كنعرفو بيها واش حنا كنعدلو شي منتج ولا لا
+ 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const [produits, setProduits] = useState([
@@ -13,7 +22,7 @@ export default function ListeProduitsPage() {
     { ref: "#REF-003", nom: "Batterie 70Ah", qte: 12, prix: 850, lot: "LOT-20260511-003", client: "mme najlae el ghouli", statut: "Stock Faible" }
   ]);
 
-  const [newProd, setNewProd] = useState({ ref: '', nom: '', qte: '', prix: '', client: '', statut: '' });
+  const [newProd, setNewProd] = useState<Produit>({ ref: '', nom: '', qte: 0, prix: 0,lot:'' ,client: '', statut: '' });
 
   const handleSave = () => {
     const { ref, nom, qte, prix, client, statut } = newProd;
@@ -23,36 +32,34 @@ export default function ListeProduitsPage() {
       return;
     }
 
-    // 2. تعديل دالة الحفظ باش تقبل الإضافة والتعديل
     if (editingIndex !== null) {
-      // حالة التعديل
+    
       const updatedProduits = [...produits];
-      updatedProduits[editingIndex] = { ...newProd, lot: produits[editingIndex].lot }; // كنحافظو على نفس رقم اللوت
-      setProduits(updatedProduits);
+      updatedProduits[editingIndex] = { ...newProd, lot: produits[editingIndex].lot }as Produit ; 
       setEditingIndex(null);
     } else {
-      // حالة إضافة جديد
+      
       const datePart = new Date().toISOString().split('T')[0].replace(/-/g, ''); 
       const randomPart = Math.floor(Math.random() * 900) + 100;
       const lotCode = `LOT-${datePart}-${randomPart}`;
-      setProduits([...produits, { ...newProd, lot: lotCode }]);
+      setProduits([...produits, { ...newProd, lot: lotCode }as Produit ]);
     }
 
     setIsModalOpen(false);
-    setNewProd({ ref: '', nom: '', qte: '', prix: '', client: '', statut: '' });
+    setNewProd({ ref: '', nom:'', qte: 0, prix: 0,lot:'', client: '', statut: '' });
   };
 
   const handleDelete = (indexToDelete: number) => {
     setProduits(produits.filter((_, index) => index !== indexToDelete));
   };
 
-  // 3. دالة كتعمر الفورميلير بالمعلومات القديمة
+  
   const openEditModal = (index: number) => {
     const p = produits[index];
     setNewProd({
       ref: p.ref,
       nom: p.nom,
-      qte: p.qte.toString(), // حولناها لـ string باش تخدم مع الـ input
+      qte: p.qte.toString(), 
       prix: p.prix.toString(),
       client: p.client,
       statut: p.statut
@@ -99,7 +106,7 @@ export default function ListeProduitsPage() {
     <div className="p-4 bg-white min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl font-bold text-gray-800">Inventaire des Produits</h1>
-        <button onClick={() => { setEditingIndex(null); setNewProd({ ref: '', nom: '', qte: '', prix: '', client: '', statut: '' }); setIsModalOpen(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ Ajouter un produit </button>
+        <button onClick={() => { setEditingIndex(null); setNewProd({ ref: '', nom: '', qte: 0, prix: 0,lot:'', client: '', statut: '' }); setIsModalOpen(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ Ajouter un produit </button>
       </div>
 
       <div className="border rounded-lg overflow-x-auto shadow-sm">
@@ -132,7 +139,7 @@ export default function ListeProduitsPage() {
                 </td>
                 <td className="p-3">
                   <div className="flex justify-end gap-2 items-center">
-                    {/* 4. ربط بوطون التعديل بالدالة الجديدة */}
+                    
                     <button onClick={() => openEditModal(index)} className="text-blue-600 hover:bg-blue-50 px-2 py-1 rounded text-xs">Modifier</button>
                     <button onClick={() => handleDelete(index)} className="text-red-500 hover:bg-red-50 px-2 py-1 rounded text-xs">Supprimer</button>
                     <button onClick={() => handlePrintEtiquette(p)} className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold hover:bg-blue-200">🏷️ Étiquette</button>
@@ -151,8 +158,8 @@ export default function ListeProduitsPage() {
             <div className="space-y-3">
               <input value={newProd.ref} type="text" placeholder="Référence" className="w-full border p-2 rounded text-sm" onChange={(e) => setNewProd({...newProd, ref: e.target.value})} />
               <input value={newProd.nom} type="text" placeholder="Désignation" className="w-full border p-2 rounded text-sm" onChange={(e) => setNewProd({...newProd, nom: e.target.value})} />
-              <input value={newProd.qte} type="number" placeholder="Quantité" className="w-full border p-2 rounded text-sm" onChange={(e) => setNewProd({...newProd, qte: e.target.value})} />
-              <input value={newProd.prix} type="number" placeholder="Prix" className="w-full border p-2 rounded text-sm" onChange={(e) => setNewProd({...newProd, prix: e.target.value})} />
+              <input value={newProd.qte} type="number" placeholder="Quantité" className="w-full border p-2 rounded text-sm" onChange={(e) => setNewProd({...newProd, qte: Number(e.target.value)})} />
+              <input value={newProd.prix} type="number" placeholder="Prix" className="w-full border p-2 rounded text-sm" onChange={(e) => setNewProd({...newProd, prix:Number(e.target.value) })} />
               <input value={newProd.client} type="text" placeholder="Client" className="w-full border p-2 rounded text-sm" onChange={(e) => setNewProd({...newProd, client: e.target.value})} />
               <select value={newProd.statut} className="w-full border p-2 rounded text-sm" onChange={(e) => setNewProd({...newProd, statut: e.target.value})}>
                 <option value="">Sélectionner Statut</option>
