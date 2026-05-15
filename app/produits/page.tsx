@@ -23,7 +23,11 @@ export default function ListeProduitsPage() {
   ]);
 
   const [newProd, setNewProd] = useState<Produit>({ ref: '', nom: '', qte: 0, prix: 0,lot:'' ,client: '', statut: '' });
-
+  const handleUpdateQty = (ref: string, change: number) => {
+  setProduits(prev => prev.map(p => 
+    p.ref === ref ? { ...p, qte: Math.max(0, p.qte + change) } : p
+  ));
+};
   const handleSave = () => {
     const { ref, nom, qte, prix, client, statut } = newProd;
 
@@ -53,6 +57,9 @@ export default function ListeProduitsPage() {
     setProduits(produits.filter((_, index) => index !== indexToDelete));
   };
 
+  const [searchTerm,setSearchTerm]=useState("");
+
+
   
   const openEditModal = (index: number) => {
     const p = produits[index];
@@ -67,6 +74,7 @@ export default function ListeProduitsPage() {
     setEditingIndex(index);
     setIsModalOpen(true);
   };
+
 
   const handlePrintEtiquette = (p: any) => {
     const printWindow = window.open('', '_blank');
@@ -107,7 +115,17 @@ export default function ListeProduitsPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl font-bold text-gray-800">Inventaire des Produits</h1>
         <button onClick={() => { setEditingIndex(null); setNewProd({ ref: '', nom: '', qte: 0, prix: 0,lot:'', client: '', statut: '' }); setIsModalOpen(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ Ajouter un produit </button>
+        
       </div>
+      <div className="mb-4 flex gap-2">
+    <input
+      type="text"
+      placeholder="Rechercher un produit..."
+      className="border p-2 rounded w-full md:w-1/3 focus:ring-2 focus:ring-blue-500"
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)} 
+    />
+  </div>
 
       <div className="border rounded-lg overflow-x-auto shadow-sm">
         <table className="w-full text-left table-auto">
@@ -124,11 +142,34 @@ export default function ListeProduitsPage() {
             </tr>
           </thead>
           <tbody className="text-sm">
-            {produits.map((p, index) => (
+            {produits
+         .filter((p) => 
+           p.nom.toLowerCase().includes(searchTerm.toLowerCase()) || 
+           p.ref.toLowerCase().includes(searchTerm.toLowerCase())
+         )
+         .map((p, index) => (
               <tr key={index} className="border-b hover:bg-gray-50">
                 <td className="p-3 font-medium">{p.ref}</td>
                 <td className="p-3">{p.nom}</td>
-                <td className="p-3">{p.qte}</td>
+                <td className="p-3">
+  <div className="flex items-center gap-2">
+    <button 
+      onClick={() => handleUpdateQty(p.ref, -1)}
+      className="px-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
+    >
+      -
+    </button>
+    
+    <span className="min-w-[20px] text-center font-medium">{p.qte}</span>
+    
+    <button 
+      onClick={() => handleUpdateQty(p.ref, 1)}
+      className="px-2 bg-green-100 text-green-600 rounded hover:bg-green-200"
+    >
+      +
+    </button>
+  </div>
+</td>
                 <td className="p-3 text-blue-600 font-bold whitespace-nowrap">{p.prix} DH</td>
                 <td className="p-3 text-xs font-mono text-gray-400">{p.lot}</td>
                 <td className="p-3 text-gray-600">{p.client}</td>

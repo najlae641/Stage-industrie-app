@@ -20,7 +20,7 @@ export default function Sidebar() {
           href="/produits" 
           className="hover:text-blue-300 transition-colors py-1 inline-block"
         >
-          Produits fini
+          Produits finis
         </Link>
 
         <Link 
