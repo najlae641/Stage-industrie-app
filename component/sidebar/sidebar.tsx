@@ -13,7 +13,12 @@ export default function Sidebar() {
       
       <nav className="flex flex-col space-y-4 flex-1">
         <div className="text-blue-400 font-medium py-2">
-          Tableau de bord
+        <Link 
+          href="/Dashboard" 
+          className="hover:text-blue-300 transition-colors py-1 inline-block"
+        >
+         Tableau de bord
+        </Link>  
         </div>
         
         <Link 

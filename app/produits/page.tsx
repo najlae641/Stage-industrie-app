@@ -1,19 +1,31 @@
 "use client";
-import { useState } from 'react'; 
+import { useState, useEffect } from 'react'; 
+import { Toaster, toast } from 'react-hot-toast'; 
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+
 interface Produit{
   ref:string;
   nom:string;
-  qte:number;
-  prix:number;
+  qte:any;
+  prix:any;
   lot:string;
   client:string;
   statut:string;
 }
 
+const downloadRapport = (data: any[], title: string) => {
+  const doc = new jsPDF();
+  doc.text(title, 14, 15);
+  autoTable(doc, {
+    head: [['Référence', 'Nom', 'Quantité', 'Prix']],
+    body: data.map(p => [p.ref, p.nom, p.qte, p.prix]),
+  });
+  doc.save("Rapport_Stock.pdf");
+};
+
 export default function ListeProduitsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
- 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const [produits, setProduits] = useState([
@@ -22,33 +34,42 @@ export default function ListeProduitsPage() {
     { ref: "#REF-003", nom: "Batterie 70Ah", qte: 12, prix: 850, lot: "LOT-20260511-003", client: "mme najlae el ghouli", statut: "Stock Faible" }
   ]);
 
+  // هاد الـ useEffect كيصيفط Notification فاش كيكون شي منتج Stock Faible
+  useEffect(() => {
+    const lowStockItems = produits.filter(p => p.statut === 'Stock Faible');
+    if (lowStockItems.length > 0) {
+      toast.error(`Attention: ${lowStockItems.length} produit(s) en stock faible !`, {
+        duration: 5000,
+        position: 'top-right',
+      });
+    }
+  }, []);
+
   const [newProd, setNewProd] = useState<Produit>({ ref: '', nom: '', qte: 0, prix: 0,lot:'' ,client: '', statut: '' });
+  
   const handleUpdateQty = (ref: string, change: number) => {
-  setProduits(prev => prev.map(p => 
-    p.ref === ref ? { ...p, qte: Math.max(0, p.qte + change) } : p
-  ));
-};
+    setProduits(prev => prev.map(p => 
+      p.ref === ref ? { ...p, qte: Math.max(0, p.qte + change) } : p
+    ));
+  };
+
   const handleSave = () => {
     const { ref, nom, qte, prix, client, statut } = newProd;
-
     if (!ref || !nom || !qte || !prix || !client || !statut) {
       alert("Veuillez remplir tous les champs");
       return;
     }
-
     if (editingIndex !== null) {
-    
       const updatedProduits = [...produits];
-      updatedProduits[editingIndex] = { ...newProd, lot: produits[editingIndex].lot }as Produit ; 
+      updatedProduits[editingIndex] = { ...newProd, lot: produits[editingIndex].lot } as Produit ; 
+      setProduits(updatedProduits);
       setEditingIndex(null);
     } else {
-      
       const datePart = new Date().toISOString().split('T')[0].replace(/-/g, ''); 
       const randomPart = Math.floor(Math.random() * 900) + 100;
       const lotCode = `LOT-${datePart}-${randomPart}`;
-      setProduits([...produits, { ...newProd, lot: lotCode }as Produit ]);
+      setProduits([...produits, { ...newProd, lot: lotCode } as Produit ]);
     }
-
     setIsModalOpen(false);
     setNewProd({ ref: '', nom:'', qte: 0, prix: 0,lot:'', client: '', statut: '' });
   };
@@ -58,23 +79,21 @@ export default function ListeProduitsPage() {
   };
 
   const [searchTerm,setSearchTerm]=useState("");
-
-
   
   const openEditModal = (index: number) => {
     const p = produits[index];
     setNewProd({
       ref: p.ref,
       nom: p.nom,
-      qte: p.qte.toString(), 
-      prix: p.prix.toString(),
+      qte: p.qte, 
+      prix: p.prix,
+      lot: p.lot,
       client: p.client,
       statut: p.statut
-    } as any);
+    });
     setEditingIndex(index);
     setIsModalOpen(true);
   };
-
 
   const handlePrintEtiquette = (p: any) => {
     const printWindow = window.open('', '_blank');
@@ -83,25 +102,14 @@ export default function ListeProduitsPage() {
         <head>
           <title>ETASCOM - Étiquette</title>
           <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-          <style>
-            body { font-family: 'Courier New', monospace; padding: 10px; width: 350px; border: 2px solid black; }
-            .header { border-bottom: 2px solid black; font-weight: bold; font-size: 18px; margin-bottom: 10px; }
-            .label { font-size: 10px; text-decoration: underline; display: block; }
-            .value { font-size: 14px; font-weight: bold; margin-bottom: 5px; display: block; }
-            .barcode-container { text-align: center; margin-top: 10px; }
-          </style>
         </head>
         <body>
-          <div class="header">ETASCOM_AUTOMOTIVE</div>
-          <span class="label">RÉFÉRENCE</span><span class="value">${p.ref}</span>
-          <span class="label">DÉSIGNATION</span><span class="value">${p.nom}</span>
-          <div style="display:flex; justify-content: space-between;">
-            <div><span class="label">N° LOT</span><span class="value">${p.lot}</span></div>
-            <div><span class="label">QTÉ</span><span class="value">${p.qte} PCS</span></div>
+          <div style="font-family: monospace; padding: 10px; width: 350px; border: 2px solid black;">
+            <div style="border-bottom: 2px solid black; font-weight: bold; font-size: 18px; margin-bottom: 10px;">ETASCOM_AUTOMOTIVE</div>
+            <span style="font-size: 10px; text-decoration: underline;">RÉFÉRENCE</span><span style="font-size: 14px; font-weight: bold; display: block;">${p.ref}</span>
+            <span style="font-size: 10px; text-decoration: underline;">DÉSIGNATION</span><span style="font-size: 14px; font-weight: bold; display: block;">${p.nom}</span>
           </div>
-          <div class="barcode-container"><svg id="barcode"></svg></div>
           <script>
-            JsBarcode("#barcode", "${p.ref}", { format: "CODE128", width: 2, height: 40, displayValue: true });
             setTimeout(() => { window.print(); window.close(); }, 500);
           </script>
         </body>
@@ -112,20 +120,25 @@ export default function ListeProduitsPage() {
 
   return (
     <div className="p-4 bg-white min-h-screen">
+      <Toaster />
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl font-bold text-gray-800">Inventaire des Produits</h1>
-        <button onClick={() => { setEditingIndex(null); setNewProd({ ref: '', nom: '', qte: 0, prix: 0,lot:'', client: '', statut: '' }); setIsModalOpen(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ Ajouter un produit </button>
-        
+        <div className="flex gap-2">
+            <button onClick={() => downloadRapport(produits, "Inventaire ETASCOM")} className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium">Exporter PDF</button>
+            <button onClick={() => { setEditingIndex(null); setNewProd({ ref: '', nom: '', qte: 0, prix: 0,lot:'', client: '', statut: '' }); setIsModalOpen(true); }} 
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ Ajouter un produit </button>
+        </div>
       </div>
+
       <div className="mb-4 flex gap-2">
-    <input
-      type="text"
-      placeholder="Rechercher un produit..."
-      className="border p-2 rounded w-full md:w-1/3 focus:ring-2 focus:ring-blue-500"
-      value={searchTerm}
-      onChange={(e) => setSearchTerm(e.target.value)} 
-    />
-  </div>
+        <input
+          type="text"
+          placeholder="Rechercher un produit..."
+          className="border p-2 rounded w-full md:w-1/3 focus:ring-2 focus:ring-blue-500"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)} 
+        />
+      </div>
 
       <div className="border rounded-lg overflow-x-auto shadow-sm">
         <table className="w-full text-left table-auto">
@@ -151,25 +164,13 @@ export default function ListeProduitsPage() {
               <tr key={index} className="border-b hover:bg-gray-50">
                 <td className="p-3 font-medium">{p.ref}</td>
                 <td className="p-3">{p.nom}</td>
-                <td className="p-3">
-  <div className="flex items-center gap-2">
-    <button 
-      onClick={() => handleUpdateQty(p.ref, -1)}
-      className="px-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
-    >
-      -
-    </button>
-    
-    <span className="min-w-[20px] text-center font-medium">{p.qte}</span>
-    
-    <button 
-      onClick={() => handleUpdateQty(p.ref, 1)}
-      className="px-2 bg-green-100 text-green-600 rounded hover:bg-green-200"
-    >
-      +
-    </button>
-  </div>
-</td>
+               <td className="p-3">
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => handleUpdateQty(p.ref, -1)} className="px-2 bg-red-100 text-red-600 rounded hover:bg-red-200">-</button>
+                    <span className="min-w-[20px] text-center font-medium">{p.qte}</span>
+                    <button onClick={() => handleUpdateQty(p.ref, 1)} className="px-2 bg-green-100 text-green-600 rounded hover:bg-green-200">+</button>
+                  </div>
+                </td>
                 <td className="p-3 text-blue-600 font-bold whitespace-nowrap">{p.prix} DH</td>
                 <td className="p-3 text-xs font-mono text-gray-400">{p.lot}</td>
                 <td className="p-3 text-gray-600">{p.client}</td>
@@ -180,7 +181,6 @@ export default function ListeProduitsPage() {
                 </td>
                 <td className="p-3">
                   <div className="flex justify-end gap-2 items-center">
-                    
                     <button onClick={() => openEditModal(index)} className="text-blue-600 hover:bg-blue-50 px-2 py-1 rounded text-xs">Modifier</button>
                     <button onClick={() => handleDelete(index)} className="text-red-500 hover:bg-red-50 px-2 py-1 rounded text-xs">Supprimer</button>
                     <button onClick={() => handlePrintEtiquette(p)} className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold hover:bg-blue-200">🏷️ Étiquette</button>
