@@ -34,6 +34,14 @@ export default function Sidebar() {
         >
           Matière première
         </Link>
+           
+           <Link 
+          href="/Historique" 
+          className="hover:text-blue-300 transition-colors py-1 inline-block"
+        >
+          Historique
+        </Link>
+
       </nav>
       
      
